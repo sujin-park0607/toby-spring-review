@@ -1,11 +1,7 @@
 package org.example.dao;
 import org.example.domain.User;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.sql.*;
-import java.util.Map;
 
 public class UserDao {
 
@@ -16,19 +12,30 @@ public class UserDao {
         this.connectionMaker = connectionMaker;
     }
 
+
+    public void jdbcContextWithStatementStrategy(StatementStrategy stmt)
+            throws  SQLException, ClassNotFoundException{
+        Connection c = null;
+        PreparedStatement ps = null;
+        try {
+            c = connectionMaker.makeConnection();
+
+            ps = stmt.makePreparedStatement(c);
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw e;
+        } finally {
+            if(ps != null){ try{ ps.close(); }catch (SQLException e){} }
+            if(c != null){ try{ c.close(); }catch (SQLException e){} }
+        }
+
+    }
     public void add(User user) throws ClassNotFoundException, SQLException {
         Connection c = connectionMaker.makeConnection();
 
-        PreparedStatement ps = c.prepareStatement(
-                "insert into users(id, name, password) values(?, ?, ?)");
-        ps.setString(1, user.getId());
-        ps.setString(2, user.getName());
-        ps.setString(3, user.getPassword());
-
-        ps.executeUpdate();
-
-        ps.close();
-        c.close();
+        StatementStrategy st = new AddStrategy(user);
+        jdbcContextWithStatementStrategy(st);
     }
 
     public User get(String id) throws ClassNotFoundException, SQLException {
@@ -38,11 +45,11 @@ public class UserDao {
         try {
             c = connectionMaker.makeConnection();
 
-            PreparedStatement ps = c.prepareStatement(
+            ps = c.prepareStatement(
                     "select * from users where id = ?");
             ps.setString(1, id);
 
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
 
             User user = null;
             if(rs.next()){
@@ -52,10 +59,6 @@ public class UserDao {
                 user.setPassword(rs.getString("password"));
             }
 
-
-            rs.close();
-            ps.close();
-            c.close();
             return user;
         } catch (SQLException e) {
             throw e;
@@ -81,11 +84,8 @@ public class UserDao {
     public void delete() throws SQLException, ClassNotFoundException {
         Connection c = connectionMaker.makeConnection();
 
-        PreparedStatement ps = c.prepareStatement("delete from users");
-        ps.executeUpdate();
-
-        ps.close();
-        c.close();
+        StatementStrategy st = new DeleteAllStrategy();
+        jdbcContextWithStatementStrategy(st);
     }
 
     public int getCount() throws SQLException, ClassNotFoundException {
