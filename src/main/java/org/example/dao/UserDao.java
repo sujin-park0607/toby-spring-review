@@ -32,29 +32,50 @@ public class UserDao {
     }
 
     public User get(String id) throws ClassNotFoundException, SQLException {
-        Connection c = connectionMaker.makeConnection();
+        Connection c = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            c = connectionMaker.makeConnection();
 
-        PreparedStatement ps = c.prepareStatement(
-                "select * from users where id = ?");
-        ps.setString(1, id);
+            PreparedStatement ps = c.prepareStatement(
+                    "select * from users where id = ?");
+            ps.setString(1, id);
 
-        ResultSet rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
 
-        User user = null;
-        if(rs.next()){
-            user = new User();
-            user.setId(rs.getString("id"));
-            user.setName(rs.getString("name"));
-            user.setPassword(rs.getString("password"));
+            User user = null;
+            if(rs.next()){
+                user = new User();
+                user.setId(rs.getString("id"));
+                user.setName(rs.getString("name"));
+                user.setPassword(rs.getString("password"));
+            }
+
+
+            rs.close();
+            ps.close();
+            c.close();
+            return user;
+        } catch (SQLException e) {
+            throw e;
+        } finally {
+            if(rs != null){
+                try{
+                    rs.close();
+                }catch (SQLException e){}
+            }
+            if(ps != null){
+                try{
+                    ps.close();
+                }catch (SQLException e){}
+            }
+            if(c != null){
+                try{
+                    c.close();
+                }catch (SQLException e){}
+            }
         }
-
-        rs.close();
-        ps.close();
-        c.close();
-
-        if(user == null) throw new EmptyResultDataAccessException(1);
-
-        return user;
     }
 
     public void delete() throws SQLException, ClassNotFoundException {
