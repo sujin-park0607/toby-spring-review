@@ -17,7 +17,7 @@ class UserDaoTest {
 
     @BeforeEach
     void setup(){
-        user1 = new User("1","sujin","11111");
+        user1 = new User("18","sujin","11111");
         user2 = new User("2","minjang","2222");
         user3 = new User("3","suwon","3333");
     }
@@ -30,12 +30,8 @@ class UserDaoTest {
         dao.add(user1);
         System.out.println("등록 성공");
 
-        User testUser = dao.get("1");
+        User testUser = dao.get("18");
         Assertions.assertEquals(user1.getName(), testUser.getName());
 
-
-
-
     }
-
 }
