@@ -29,7 +29,7 @@ class UserDaoTest {
 
     @BeforeEach
     void setup() throws SQLException, ClassNotFoundException {
-        dao = context.getBean("AwsUserDao", UserDao.class);
+        dao = context.getBean("awsUserDao", UserDao.class);
 
         dao.deleteAll();
         user1 = new User("1","sujin","11111");

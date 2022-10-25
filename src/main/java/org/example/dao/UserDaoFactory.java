@@ -22,6 +22,7 @@ public class UserDaoFactory {
     public DataSource awsDataSource() {
         Map<String, String> env = System.getenv();
         SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
+        dataSource.setDriverClass(com.mysql.cj.jdbc.Driver.class);
         dataSource.setUrl(env.get("DB_HOST"));
         dataSource.setUsername(env.get("DB_USER"));
         dataSource.setPassword(env.get("DB_PASSWORD"));
