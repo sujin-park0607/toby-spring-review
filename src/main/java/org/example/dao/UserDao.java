@@ -1,5 +1,7 @@
 package org.example.dao;
 import org.example.domain.User;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.sql.*;
 import java.util.Map;
