@@ -1,24 +1,23 @@
 package org.example.dao;
 import org.example.domain.User;
 
+import javax.sql.DataSource;
 import java.sql.*;
 
 public class UserDao {
 
-    private ConnectionMaker connectionMaker;
+    private DataSource dataSource;
 
-
-    public UserDao(ConnectionMaker connectionMaker) {
-        this.connectionMaker = connectionMaker;
+    public UserDao(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
-
 
     public void jdbcContextWithStatementStrategy(StatementStrategy stmt)
             throws  SQLException, ClassNotFoundException{
         Connection c = null;
         PreparedStatement ps = null;
         try {
-            c = connectionMaker.makeConnection();
+            c = dataSource.getConnection();
 
             ps = stmt.makePreparedStatement(c);
 
@@ -31,11 +30,33 @@ public class UserDao {
         }
 
     }
-    public void add(User user) throws ClassNotFoundException, SQLException {
-        Connection c = connectionMaker.makeConnection();
 
-        StatementStrategy st = new AddStrategy(user);
-        jdbcContextWithStatementStrategy(st);
+    public void deleteAll() throws SQLException, ClassNotFoundException {
+        jdbcContextWithStatementStrategy(
+                new StatementStrategy() {
+                    @Override
+                    public PreparedStatement makePreparedStatement(Connection c)
+                            throws SQLException {
+                        return c.prepareStatement("delete from users");
+                    }
+                }
+        );
+    }
+
+    public void add(User user) throws ClassNotFoundException, SQLException {
+        jdbcContextWithStatementStrategy(
+                new StatementStrategy() {
+                    @Override
+                    public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+                        PreparedStatement ps = c.prepareStatement(
+                                "insert into users(id, name, password) values(?, ?, ?)");
+                        ps.setString(1, user.getId());
+                        ps.setString(2, user.getName());
+                        ps.setString(3, user.getPassword());
+                        return ps;
+                    }
+                }
+        );
     }
 
     public User get(String id) throws ClassNotFoundException, SQLException {
@@ -43,7 +64,7 @@ public class UserDao {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            c = connectionMaker.makeConnection();
+            c = dataSource.getConnection();
 
             ps = c.prepareStatement(
                     "select * from users where id = ?");
@@ -81,15 +102,10 @@ public class UserDao {
         }
     }
 
-    public void delete() throws SQLException, ClassNotFoundException {
-        Connection c = connectionMaker.makeConnection();
 
-        StatementStrategy st = new DeleteAllStrategy();
-        jdbcContextWithStatementStrategy(st);
-    }
 
     public int getCount() throws SQLException, ClassNotFoundException {
-        Connection c = connectionMaker.makeConnection();
+        Connection c = dataSource.getConnection();
         PreparedStatement ps = c.prepareStatement("select count(*) from users");
 
         ResultSet rs = ps.executeQuery();

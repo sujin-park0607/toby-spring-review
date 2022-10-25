@@ -31,7 +31,7 @@ class UserDaoTest {
     void setup() throws SQLException, ClassNotFoundException {
         dao = context.getBean("AwsUserDao", UserDao.class);
 
-        dao.delete();
+        dao.deleteAll();
         user1 = new User("1","sujin","11111");
         user2 = new User("2","minjang","2222");
         user3 = new User("3","suwon","3333");
@@ -55,7 +55,7 @@ class UserDaoTest {
         dao.add(user2);
         dao.add(user3);
 
-        dao.delete();
+        dao.deleteAll();
         int count = dao.getCount();
         Assertions.assertEquals(0, count);
     }
